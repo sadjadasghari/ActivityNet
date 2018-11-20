@@ -134,7 +134,7 @@ def download_clip_wrapper(row, label_to_dir, trim_format, tmp_dir):
     return status
 
 
-def parse_kinetics_annotations(input_csv, ignore_is_cc=False):
+def parse_ava_annotations(input_txt, ignore_is_cc=False):
     """Returns a parsed DataFrame.
 
     arguments:
@@ -148,7 +148,7 @@ def parse_kinetics_annotations(input_csv, ignore_is_cc=False):
     dataset: DataFrame
         Pandas with the following columns:
             'video-id', 'start-time', 'end-time', 'label-name'
-    """
+    
     df = pd.read_csv(input_csv)
     if 'youtube_id' in df.columns:
         columns = OrderedDict([
@@ -160,14 +160,19 @@ def parse_kinetics_annotations(input_csv, ignore_is_cc=False):
         if ignore_is_cc:
             df = df.loc[:, df.columns.tolist()[:-1]]
     return df
+    """
+    with open(input_txt) as input:
+	for line in input:
+	    line = line.split(".")[0]
+	    vids.append(line)
+    return vids
 
-
-def main(input_csv, output_dir,
+def main(input_txt, output_dir,
          trim_format='%06d', num_jobs=24, tmp_dir='/tmp/kinetics',
          drop_duplicates=False):
 
     # Reading and parsing Kinetics.
-    dataset = parse_kinetics_annotations(input_csv)
+    dataset = parse_ava_annotations(input_txt)
     # if os.path.isfile(drop_duplicates):
     #     print('Attempt to remove duplicates')
     #     old_dataset = parse_kinetics_annotations(drop_duplicates,
@@ -201,11 +206,11 @@ def main(input_csv, output_dir,
 
 
 if __name__ == '__main__':
-    description = 'Helper script for downloading and trimming kinetics videos.'
+    description = 'Helper script for downloading and trimming AVA videos.'
     p = argparse.ArgumentParser(description=description)
-    p.add_argument('input_csv', type=str,
-                   help=('CSV file containing the following format: '
-                         'YouTube Identifier,Start time,End time,Class label'))
+    p.add_argument('input_txt', type=str,
+                   help=('txt file containing the following format: '
+                         'YouTube Identifier,FileFormat'))
     p.add_argument('output_dir', type=str,
                    help='Output directory where videos will be saved.')
     p.add_argument('-f', '--trim-format', type=str, default='%06d',
@@ -213,7 +218,7 @@ if __name__ == '__main__':
                          'filename of trimmed videos: '
                          'videoid_%0xd(start_time)_%0xd(end_time).mp4'))
     p.add_argument('-n', '--num-jobs', type=int, default=24)
-    p.add_argument('-t', '--tmp-dir', type=str, default='/tmp/kinetics')
+    p.add_argument('-t', '--tmp-dir', type=str, default='/tmp/AVA')
     p.add_argument('--drop-duplicates', type=str, default='non-existent',
                    help='Unavailable at the moment')
                    # help='CSV file of the previous version of Kinetics.')
